@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lan="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" contents="width=device-width, initial-scale=1.0">
+	<title>Book Records</title>
+</head>
+<body>
+
+<h1>Book Records</h1>
+
+
+<--! Display Records -->
+<?php
+$servername = "mi-linux.wlv.ac.uk";
+$username = "2207931";
+$password = "64zo0b";
+$dbname = "db2207931";
+
+$conn = mysqli_connect($servername, $username, $password, $dbname);
+
+if ($conn->connect_error) {
+	die("Connection failed: " . $conn->connect_error);
+}
+
+$sql = "SELECT Book, Author, Genre FROM bookrecords";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+	while($row = $result->fetch_assoc()) {
+		echo "Book: " . $row["Book"]. " - Author: " . $row["Author"]. " - Genre: " . $row["Genre"]. "<br>"; 
+	}
+} else {
+	echo "No records found!";
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MySQL Search Bar</title>
+</head>
+<body>
+
+    <h2>Search Bar</h2>
+
+    <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
+        <label for="search">Search:</label>
+        <input type="text" id="search" name="search" required>
+        <button type="submit">Search</button>
+    </form>
+
+<?php
+// Database connection parameters
+$servername = "mi-linux.wlv.ac.uk";
+$username = "2207931";
+$password = "64zo0b";
+$dbname = "db2207931";
+
+$conn = mysqli_connect($servername, $username, $password, $dbname);
+
+    // Check connection
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }
+		// Get the search term from the user or any other source
+	$searchTerm = "your_search_term";
+
+	// Escape the search term to prevent SQL injection
+	$searchTerm = mysqli_real_escape_string($conn, $searchTerm);
+
+	// SQL query to select rows based on the column value
+	$sql = "SELECT * FROM bookrecords WHERE Book = '$searchTerm'";
+	$result = $conn->query($sql);
+
+	if ($result->num_rows > 0) {
+		// Output data of each row
+		while ($row = $result->fetch_assoc()) {
+			echo "Column Value: " . $row["Book"] . "<br>";
+			// You can output other column values as needed
+		}
+	} else {
+		echo "0 results";
+	}
+
+ // Close connection
+ $conn->close();
+ ?>
+</body>
+</html>
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Book</title>
+</head>
+<body>
+    <h2>Add a New Book</h2>
+    <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+        <label for="book">Book:</label>
+        <input type="text" name="book" required><br>
+
+        <label for="author">Author:</label>
+        <input type="text" name="author" required><br>
+
+        <label for="genre">Genre:</label>
+        <input type="text" name="genre" required><br>
+
+        <input type="submit" value="Add Book">
+    </form>
+</body>
+</html>
+
+
+
+<?php
+$servername = "mi-linux.wlv.ac.uk";
+$username = "2207931";
+$password = "64zo0b";
+$dbname = "db2207931";
+
+$conn = mysqli_connect($servername, $username, $password, $dbname);
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+// Check if the form has been submitted
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Process form data
+    $book = $_POST['book'];
+    $author = $_POST['author'];
+    $genre = $_POST['genre'];
+  
+
+    // Check for duplicates
+    $duplicateCheckQuery = "SELECT * FROM bookrecords WHERE Book='$book' AND Author='$author'";
+    $result = $conn->query($duplicateCheckQuery);
+
+    if ($result->num_rows > 0) {
+        echo "Error: This book already exists in the database.";
+    } else {
+        // Insert into the database
+        $insertQuery = "INSERT INTO bookrecords (Book, Author, Genre) VALUES ('$book', '$author', '$genre')";
+
+        if ($conn->query($insertQuery) === TRUE) {
+            echo "New book added successfully";
+        } else {
+            echo "Error: " . $insertQuery . "<br>" . $conn->error;
+        }
+    }
+}
+
+$conn->close()
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Book Record</title>
+</head>
+<body>
+    <h2>Update Book Record</h2>
+    <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+        <label for="book">Book Title:</label>
+        <input type="text" name="book" required><br>
+
+        <label for="author">Author:</label>
+        <input type="text" name="author" required><br>
+
+        <label for="genre">Genre:</label>
+        <input type="text" name="genre" required><br>
+
+        <input type="submit" value="Update Record">
+    </form>
+</body>
+</html>
+
+
+<?php
+$servername = "mi-linux.wlv.ac.uk";
+$username = "2207931";
+$password = "64zo0b";
+$dbname = "db2207931";
+
+$conn = mysqli_connect($servername, $username, $password, $dbname);
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Get user input from the form
+    $updatedBook = $_POST["book"];
+    $updatedAuthor = $_POST["author"];
+    $updatedGenre = $_POST["genre"];
+
+    $bookToUpdate = $_POST["book"]; // Assuming you want to update based on book title
+
+    // Update query
+    $sql = "UPDATE bookrecords SET Book = ?, Author = ?, Genre = ? WHERE Book = ?";
+
+    // Prepare and bind the statement
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ssss", $updatedBook, $updatedAuthor, $updatedGenre, $bookToUpdate);
+
+    // Execute the statement
+    $stmt->execute();
+
+   // Check for errors
+    if ($stmt->errno) {
+        echo "Error updating record: " . $stmt->error;
+    } else {
+        echo "Record updated successfully!";
+    }
+
+    // Close the statement
+    $stmt->close();
+}
+
+// Close the connection
+$conn->close();
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Book Record</title>
+</head>
+<body>
+
+<h2>Delete Book Record</h2>
+
+<form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+    <label for="book">Book Title:</label>
+    <input type="text" id="book" name="book" required><br>
+
+    <label for="author">Author Name:</label>
+    <input type="text" id="author" name="author" required><br>
+
+    <label for="genre">Genre Type:</label>
+    <input type="text" id="genre" name="genre" required><br>
+
+    <input type="submit" value="Delete Record">
+</form>
+
+</body>
+</html>
+
+<?php
+$servername = "mi-linux.wlv.ac.uk";
+$username = "2207931";
+$password = "64zo0b";
+$dbname = "db2207931";
+
+$conn = mysqli_connect($servername, $username, $password, $dbname);
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+// Check if the form is submitted
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Retrieve user input from the form
+    $bookToDelete = $_POST['book'];
+    $authorToDelete = $_POST['author'];
+    $genreToDelete = $_POST['genre'];
+
+    // SQL query to delete a record based on conditions
+    $sql = "DELETE FROM bookrecords WHERE Book = '$bookToDelete' AND Author = '$authorToDelete' AND Genre = '$genreToDelete'";
+
+    // Execute the query
+    if ($conn->query($sql) === TRUE) {
+        echo "Record deleted successfully";
+    } else {
+        echo "Error deleting record: " . $conn->error;
+    }
+}
+
+// Close the database connection
+$conn->close();
+?>
