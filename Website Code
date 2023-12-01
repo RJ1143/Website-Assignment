@@ -3,37 +3,62 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" contents="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="style.css">
+	<title>Book Records</title>
+</head>
+<body>
+	<div class="container">
+		<h1>Book Records</h1>
+		<table>
+			<tr>
+				<th>Book</th>
+				<th>Author</th>
+				<th>Genre</th>
+			<tr>
+			<?php
+			$servername = "mi-linux.wlv.ac.uk";
+			$username = "2207931";
+			$password = "64zo0b";
+			$dbname = "db2207931";
+
+			$conn = mysqli_connect($servername, $username, $password, $dbname);
+
+			if ($conn->connect_error) {
+				die("Connection failed: " . $conn->connect_error);
+			}
+
+			$sql = "SELECT Book, Author, Genre FROM bookrecords";
+			$result = $conn->query($sql);
+
+			if ($result->num_rows > 0) {
+				echo "<table>";
+				echo "<tr><th>Book</th><th>Author</th><th>Genre</th></tr>";
+			
+				while($row = $result->fetch_assoc()) {
+					echo "<tr><td>" . $row["Book"]. "</td><td>" . $row["Author"]. "</td><td>" . $row["Genre"]. "</td></tr>"; 
+				}
+				
+				echo "</table>";
+			} else {
+				echo "No records found!";
+			}
+			
+			$conn->close()
+			?>
+		</table>
+	</div>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lan="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" contents="width=device-width, initial-scale=1.0">
 	<title>Book Records</title>
 </head>
 <body>
 
-<h1>Book Records</h1>
-
-
-<--! Display Records -->
-<?php
-$servername = "mi-linux.wlv.ac.uk";
-$username = "2207931";
-$password = "64zo0b";
-$dbname = "db2207931";
-
-$conn = mysqli_connect($servername, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-	die("Connection failed: " . $conn->connect_error);
-}
-
-$sql = "SELECT Book, Author, Genre FROM bookrecords";
-$result = $conn->query($sql);
-
-if ($result->num_rows > 0) {
-	while($row = $result->fetch_assoc()) {
-		echo "Book: " . $row["Book"]. " - Author: " . $row["Author"]. " - Genre: " . $row["Genre"]. "<br>"; 
-	}
-} else {
-	echo "No records found!";
-}
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -228,33 +253,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 $conn->close();
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Delete Book Record</title>
-</head>
-<body>
-
-<h2>Delete Book Record</h2>
-
-<form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-    <label for="book">Book Title:</label>
-    <input type="text" id="book" name="book" required><br>
-
-    <label for="author">Author Name:</label>
-    <input type="text" id="author" name="author" required><br>
-
-    <label for="genre">Genre Type:</label>
-    <input type="text" id="genre" name="genre" required><br>
-
-    <input type="submit" value="Delete Record">
-</form>
-
-</body>
-</html>
-
 <?php
 $servername = "mi-linux.wlv.ac.uk";
 $username = "2207931";
@@ -267,24 +265,39 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Check if the form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Retrieve user input from the form
-    $bookToDelete = $_POST['book'];
-    $authorToDelete = $_POST['author'];
-    $genreToDelete = $_POST['genre'];
+    $Book = $_POST['Book'];
+    $Author = $_POST['Author'];
+    $Genre = $_POST['Genre'];
 
-    // SQL query to delete a record based on conditions
-    $sql = "DELETE FROM bookrecords WHERE Book = '$bookToDelete' AND Author = '$authorToDelete' AND Genre = '$genreToDelete'";
+    $stmt = $conn->prepare("DELETE FROM bookrecords WHERE Book = ? AND Author = ? AND Genre = ?");
+    $stmt->bind_param("sss", $Book, $Author, $Genre);
 
-    // Execute the query
-    if ($conn->query($sql) === TRUE) {
+    if ($stmt->execute()) {
         echo "Record deleted successfully";
     } else {
-        echo "Error deleting record: " . $conn->error;
+        echo "Error deleting record: " . $stmt->error;
     }
+
+    $stmt->close();
 }
 
-// Close the database connection
 $conn->close();
 ?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Delete Book Record</title>
+</head>
+<body>
+<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
+    Book: <input type="text" name="Book"><br>
+    Author: <input type="text" name="Author"><br>
+    Genre: <input type="text" name="Genre"><br>
+    <input type="submit" value="Delete Record">
+</form>
+
+</body>
+</html>
